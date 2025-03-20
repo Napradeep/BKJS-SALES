@@ -39,6 +39,11 @@ dependencies:
   geolocator: ^13.0.2
   permission_handler: ^11.4.0
   flutter_launcher_icons: ^0.14.3
+  provider: ^6.1.2
+  device_info_plus: ^11.3.3
+  intl: ^0.20.2
+  shared_preferences: ^2.5.2
+  flutter_background_service: ^5.1.0
 
 dev_dependencies:
   flutter_test:

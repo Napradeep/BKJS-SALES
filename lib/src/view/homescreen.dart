@@ -1,9 +1,17 @@
+
+
+
 import 'dart:async';
 import 'dart:developer';
+import 'dart:ui';
 
+import 'package:bkjs_sales/src/provider/registerprovider/registerprovider.dart';
+import 'package:bkjs_sales/src/utils/const/color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,70 +23,162 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
-  late WebViewController _controller;
+  late final WebViewController _controller;
   StreamSubscription<Position>? _positionStream;
+  final service = FlutterBackgroundService();
+  Timer? _locationTimer;
   double? latitude;
   double? longitude;
+
+  bool isServiceRunning = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    _controller =
-        WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..loadRequest(Uri.parse(widget.url));
-
+    _initializeWebView();
     _requestPermissions();
   }
 
-  // Handle App Lifecycle
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    log("App Lifecycle State: $state");
-    if (state == AppLifecycleState.resumed) {
-      _startLocationUpdates();
-    } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      _stopLocationUpdates();
-    }
+  /// Initializes WebView with JavaScript enabled
+  void _initializeWebView() {
+    _controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onPageStarted: (String url) {
+                log("WebView started loading: $url");
+              },
+              onPageFinished: (String url) {
+                log("WebView finished loading: $url");
+              },
+              onWebResourceError: (error) {
+                log("WebView error: ${error.description}");
+              },
+            ),
+          )
+          ..loadRequest(Uri.parse(widget.url));
   }
 
-  // Request permissions for Location and Camera
+  /// Requests necessary permissions and starts location tracking
   Future<void> _requestPermissions() async {
-    var locationStatus = await Permission.locationWhenInUse.request();
+    var locationStatus = await Permission.locationAlways.request();
     var cameraStatus = await Permission.camera.request();
 
     if (locationStatus.isGranted && cameraStatus.isGranted) {
       log("Permissions granted.");
       _startLocationUpdates();
+      _initializeBackgroundService();
+    } else if (locationStatus.isPermanentlyDenied ||
+        cameraStatus.isPermanentlyDenied) {
+      log("Permissions permanently denied. Redirecting to settings...");
+      openAppSettings();
     } else {
       log("One or more permissions denied.");
-      openAppSettings(); // Opens the app settings if permissions are denied permanently
     }
   }
 
-  // Start Location Updates
-  void _startLocationUpdates() {
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 2,
+  /// Handles app lifecycle changes for background execution
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    log("App Lifecycle State: $state");
+    if (state == AppLifecycleState.resumed) {
+      _startLocationUpdates();
+    } else if (state == AppLifecycleState.paused) {
+      _initializeBackgroundService();
+    } else if (state == AppLifecycleState.detached) {
+      _stopLocationUpdates();
+    }
+  }
+
+  /// Initializes and configures background service
+  Future<void> _initializeBackgroundService() async {
+    if (isServiceRunning) return;
+    isServiceRunning = true;
+
+    await service.configure(
+      androidConfiguration: AndroidConfiguration(
+        autoStart: true,
+        isForegroundMode: true,
+        autoStartOnBoot: true,
+        onStart: _onStart,
       ),
-    ).listen((Position position) {
-      setState(() {
-        latitude = position.latitude;
-        longitude = position.longitude;
-      });
-      log("Updated Location: $latitude, $longitude");
+      iosConfiguration: IosConfiguration(
+        autoStart: true,
+        onForeground: _onStart,
+        onBackground: _onIosBackground,
+      ),
+    );
+  }
+
+  /// Background execution function for iOS
+  @pragma('vm:entry-point')
+  static Future<bool> _onIosBackground(ServiceInstance service) async {
+    WidgetsFlutterBinding.ensureInitialized();
+    DartPluginRegistrant.ensureInitialized();
+    return true;
+  }
+
+  /// Background execution function for Android/iOS
+  @pragma('vm:entry-point')
+  static void _onStart(ServiceInstance service) async {
+    bool isRunning = true;
+
+    service.on("stop").listen((event) {
+      service.stopSelf();
+      isRunning = false;
+      log("Background service stopped.");
+    });
+
+    Timer.periodic(const Duration(minutes: 2), (timer) async {
+      if (!isRunning) {
+        timer.cancel();
+        return;
+      }
+      log("Background location tracking...");
+      await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
     });
   }
 
-  // Stop Location Updates
+  /// Stops the background service
+  Future<void> _stopBackgroundService() async {
+    service.invoke("stop");
+    isServiceRunning = false;
+    log("Background service stopped.");
+  }
+
+  /// Starts location updates every 2 minutes
+  void _startLocationUpdates() {
+    _locationTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
+      Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+          .then((Position position) async {
+            setState(() {
+              latitude = position.latitude;
+              longitude = position.longitude;
+            });
+
+            log("Updated Location: $latitude, $longitude");
+
+            if (latitude != null && longitude != null) {
+              await context.read<RegistrationProvider>().sendLocationUpdate(
+                latitude: latitude!,
+                longitude: longitude!,
+              );
+            }
+          })
+          .catchError((e) {
+            log("Error fetching location: $e");
+          });
+    });
+  }
+
+  /// Stops location updates
   void _stopLocationUpdates() {
     _positionStream?.cancel();
-    _positionStream = null;
+    _locationTimer?.cancel();
     log("Stopped Location Updates");
   }
 
@@ -86,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _stopLocationUpdates();
+    _stopBackgroundService();
     super.dispose();
   }
 
@@ -95,19 +196,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       appBar: AppBar(
         title: const Text(
           'BKJS SALES',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: backgroundClr,
       ),
       body: Column(
-        children: [
-          Expanded(child: WebViewWidget(controller: _controller)),
-          // if (latitude != null && longitude != null)
-          //   Padding(
-          //     padding: const EdgeInsets.all(10),
-          //     child: Text("Latitude: $latitude, Longitude: $longitude"),
-          //   ),
-        ],
+        children: [Expanded(child: WebViewWidget(controller: _controller))],
       ),
     );
   }

@@ -12,7 +12,7 @@ class NetworkUtils {
     return _instance;
   }
 
-  final baseurl = "https://newsapi.org/v2/top-headlines?sources=techcrunch&";
+  final baseurl = "https://sma.bhangarukalasam.com/api/location";
 
   NetworkUtils._internal() {
     _dio = Dio(

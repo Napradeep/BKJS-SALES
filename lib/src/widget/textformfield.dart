@@ -18,23 +18,24 @@ class MyTextfomrfiledbox extends StatefulWidget {
   final String? labelText;
   final void Function(String)? onChanged;
 
-  const MyTextfomrfiledbox(
-      {super.key,
-      required this.controller,
-      this.color,
-      this.decoration,
-      this.keyboardType,
-      this.icon,
-      this.hinttext,
-      this.suffixIcon,
-      this.obscureText = false,
-      this.length,
-      this.enable,
-      this.validator,
-      this.inputFormatters,
-      this.focusNode,
-      this.onChanged,
-      this.labelText});
+  const MyTextfomrfiledbox({
+    super.key,
+    required this.controller,
+    this.color,
+    this.decoration,
+    this.keyboardType,
+    this.icon,
+    this.hinttext,
+    this.suffixIcon,
+    this.obscureText = false,
+    this.length,
+    this.enable,
+    this.validator,
+    this.inputFormatters,
+    this.focusNode,
+    this.onChanged,
+    this.labelText,
+  });
 
   @override
   State<MyTextfomrfiledbox> createState() => _MyTextfomrfiledboxState();
@@ -49,12 +50,10 @@ class _MyTextfomrfiledboxState extends State<MyTextfomrfiledbox> {
     super.initState();
     _focusNode = widget.focusNode ?? FocusNode();
 
-    // Listen for focus changes to update the border color
     _focusNode.addListener(() {
       setState(() {
-        // Highlight the border when the field is focused
         _currentBorderColor =
-            _focusNode.hasFocus ? Colors.blue : Colors.grey.shade300;
+            _focusNode.hasFocus ? Colors.white : Colors.grey.shade300;
       });
     });
   }
@@ -79,8 +78,8 @@ class _MyTextfomrfiledboxState extends State<MyTextfomrfiledbox> {
       inputFormatters: widget.inputFormatters,
       focusNode: _focusNode,
       decoration: InputDecoration(
-        labelText: widget.labelText, // Floating label
-        labelStyle: const TextStyle(color: Colors.grey), // Label text color
+        labelText: widget.labelText,
+        labelStyle: const TextStyle(color: Colors.grey), 
         prefixIcon: widget.icon,
         suffixIcon: widget.suffixIcon,
         fillColor: Colors.white,
@@ -97,9 +96,7 @@ class _MyTextfomrfiledboxState extends State<MyTextfomrfiledbox> {
           borderSide: BorderSide(color: _currentBorderColor),
         ),
       ),
-      style: TextStyle(
-        color: widget.color,
-      ),
+      style: TextStyle(color: widget.color),
       keyboardType: widget.keyboardType,
       validator: widget.validator,
       onChanged: widget.onChanged,
