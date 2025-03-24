@@ -1,14 +1,292 @@
+// // import 'dart:async';
+// // import 'dart:developer';
+
+// // import 'package:bkjs_sales/src/provider/registerprovider/registerprovider.dart';
+// // import 'package:bkjs_sales/src/utils/const/color.dart';
+// // import 'package:flutter/material.dart';
+// // import 'package:geolocator/geolocator.dart';
+// // import 'package:permission_handler/permission_handler.dart';
+// // import 'package:provider/provider.dart';
+// // import 'package:webview_flutter/webview_flutter.dart';
+
+// // class HomeScreen extends StatefulWidget {
+// //   final String url;
+// //   const HomeScreen({super.key, required this.url});
+
+// //   @override
+// //   _HomeScreenState createState() => _HomeScreenState();
+// // }
+
+// // class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+// //   late final WebViewController _controller;
+// //   Timer? _locationTimer;
+// //   double? latitude;
+// //   double? longitude;
+
+// //   @override
+// //   void initState() {
+// //     super.initState();
+// //     WidgetsBinding.instance.addObserver(this);
+// //     _initializeWebView();
+// //     _checkPermissions();
+// //   }
+
+// //   void _initializeWebView() {
+// //     _controller =
+// //         WebViewController()
+// //           ..setJavaScriptMode(JavaScriptMode.unrestricted)
+// //           ..setNavigationDelegate(
+// //             NavigationDelegate(
+// //               onPageStarted: (String url) {
+// //                 log("WebView started loading: $url");
+// //               },
+// //               onPageFinished: (String url) {
+// //                 log("WebView finished loading: $url");
+// //               },
+// //               onWebResourceError: (error) {
+// //                 log("WebView error: ${error.description}");
+// //               },
+// //             ),
+// //           )
+// //           ..loadRequest(Uri.parse(widget.url));
+// //   }
+
+// //   Future<void> _checkPermissions() async {
+// //     var status = await Permission.locationAlways.status;
+
+// //     if (status.isDenied) {
+// //       log("Location permission denied. Requesting again...");
+// //       status = await Permission.locationAlways.request();
+// //     }
+
+// //     if (status.isPermanentlyDenied) {
+// //       log("Location permission permanently denied. Redirecting to settings...");
+// //       openAppSettings();
+// //       return;
+// //     }
+
+// //     if (status.isGranted) {
+// //       log("Location permission granted.");
+// //       _startLocationUpdates();
+// //     } else {
+// //       log("Location permission still denied.");
+// //     }
+// //   }
+
+// //   @override
+// //   void didChangeAppLifecycleState(AppLifecycleState state) {
+// //     log("App Lifecycle State: $state");
+// //     if (state == AppLifecycleState.resumed) {
+// //       _startLocationUpdates();
+// //     } else if (state == AppLifecycleState.detached) {
+// //       _stopLocationUpdates();
+// //     }
+// //   }
+
+// //   void _startLocationUpdates() {
+// //     _locationTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
+// //       Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+// //           .then((Position position) async {
+// //             setState(() {
+// //               latitude = position.latitude;
+// //               longitude = position.longitude;
+// //             });
+
+// //             log("Updated Location: $latitude, $longitude");
+
+// //             if (latitude != null && longitude != null) {
+// //               await context.read<RegistrationProvider>().sendLocationUpdate(
+// //                 latitude: latitude!,
+// //                 longitude: longitude!,
+// //               );
+// //             }
+// //           })
+// //           .catchError((e) {
+// //             log("Error fetching location: $e");
+// //           });
+// //     });
+// //   }
+
+// //   void _stopLocationUpdates() {
+// //     _locationTimer?.cancel();
+// //     log("Stopped Location Updates");
+// //   }
+
+// //   @override
+// //   void dispose() {
+// //     WidgetsBinding.instance.removeObserver(this);
+// //     _stopLocationUpdates();
+// //     super.dispose();
+// //   }
+
+// //   @override
+// //   Widget build(BuildContext context) {
+// //     return Scaffold(
+// //       appBar: AppBar(
+// //         title: const Text(
+// //           'BKJS SALES',
+// //           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+// //         ),
+// //         backgroundColor: backgroundClr,
+// //       ),
+// //       body: Column(
+// //         children: [Expanded(child: WebViewWidget(controller: _controller))],
+// //       ),
+// //     );
+// //   }
+// // }
+
+
+// import 'dart:async';
+// import 'dart:developer';
+// import 'package:bkjs_sales/src/provider/registerprovider/registerprovider.dart';
+// import 'package:bkjs_sales/src/utils/const/color.dart';
+// import 'package:flutter/material.dart';
+// import 'package:geolocator/geolocator.dart';
+// import 'package:permission_handler/permission_handler.dart';
+// import 'package:provider/provider.dart';
+// import 'package:webview_flutter/webview_flutter.dart';
+
+// class HomeScreen extends StatefulWidget {
+//   final String url;
+//   const HomeScreen({super.key, required this.url});
+
+//   @override
+//   _HomeScreenState createState() => _HomeScreenState();
+// }
+
+// class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+//   late final WebViewController _controller;
+//   Timer? _locationTimer;
+//   double? latitude;
+//   double? longitude;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     WidgetsBinding.instance.addObserver(this);
+//     _initializeWebView();
+//     _checkPermissions();
+//   }
+
+//   void _initializeWebView() {
+//     _controller = WebViewController()
+//       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+//       ..setNavigationDelegate(
+//         NavigationDelegate(
+//           onPageStarted: (String url) {
+//             log("WebView started loading: $url");
+//           },
+//           onPageFinished: (String url) {
+//             log("WebView finished loading: $url");
+//           },
+//           onWebResourceError: (error) {
+//             log("WebView error: ${error.description}");
+//           },
+//         ),
+//       )
+//       ..loadRequest(Uri.parse(widget.url));
+//   }
+
+//   Future<void> _checkPermissions() async {
+//     var locationStatus = await Permission.locationAlways.status;
+//     var cameraStatus = await Permission.camera.status;
+
+//     if (locationStatus.isDenied) {
+//       log("Location permission denied. Requesting again...");
+//       locationStatus = await Permission.locationAlways.request();
+//     }
+
+//     if (cameraStatus.isDenied) {
+//       log("Camera permission denied. Requesting again...");
+//       cameraStatus = await Permission.camera.request();
+//     }
+
+//     if (locationStatus.isPermanentlyDenied || cameraStatus.isPermanentlyDenied) {
+//       log("Permission permanently denied. Redirecting to settings...");
+//       openAppSettings();
+//       return;
+//     }
+
+//     if (locationStatus.isGranted && cameraStatus.isGranted) {
+//       log("Permissions granted.");
+//       _startLocationUpdates();
+//     } else {
+//       log("Permissions still denied.");
+//     }
+//   }
+
+//   @override
+//   void didChangeAppLifecycleState(AppLifecycleState state) {
+//     log("App Lifecycle State: $state");
+//     if (state == AppLifecycleState.resumed) {
+//       _startLocationUpdates();
+//     } else if (state == AppLifecycleState.detached) {
+//       _stopLocationUpdates();
+//     }
+//   }
+
+//   void _startLocationUpdates() {
+//     _locationTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+//       Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+//           .then((Position position) async {
+//             setState(() {
+//               latitude = position.latitude;
+//               longitude = position.longitude;
+//             });
+
+//             log("Updated Location: $latitude, $longitude");
+
+//             if (latitude != null && longitude != null) {
+//               await context.read<RegistrationProvider>().sendLocationUpdate(
+//                 latitude: latitude!,
+//                 longitude: longitude!,
+//               );
+//             }
+//           })
+//           .catchError((e) {
+//             log("Error fetching location: $e");
+//           });
+//     });
+//   }
+
+//   void _stopLocationUpdates() {
+//     _locationTimer?.cancel();
+//     log("Stopped Location Updates");
+//   }
+
+//   @override
+//   void dispose() {
+//     WidgetsBinding.instance.removeObserver(this);
+//     _stopLocationUpdates();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text(
+//           'BKJS SALES',
+//           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+//         ),
+//         backgroundColor: backgroundClr,
+//       ),
+//       body: Column(
+//         children: [Expanded(child: WebViewWidget(controller: _controller))],
+//       ),
+//     );
+//   }
+// }
 
 
 
 import 'dart:async';
 import 'dart:developer';
-import 'dart:ui';
 
 import 'package:bkjs_sales/src/provider/registerprovider/registerprovider.dart';
 import 'package:bkjs_sales/src/utils/const/color.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -24,133 +302,83 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final WebViewController _controller;
-  StreamSubscription<Position>? _positionStream;
-  final service = FlutterBackgroundService();
   Timer? _locationTimer;
   double? latitude;
   double? longitude;
-
-  bool isServiceRunning = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeWebView();
-    _requestPermissions();
+    _checkPermissions();
   }
 
-  /// Initializes WebView with JavaScript enabled
   void _initializeWebView() {
-    _controller =
-        WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..setNavigationDelegate(
-            NavigationDelegate(
-              onPageStarted: (String url) {
-                log("WebView started loading: $url");
-              },
-              onPageFinished: (String url) {
-                log("WebView finished loading: $url");
-              },
-              onWebResourceError: (error) {
-                log("WebView error: ${error.description}");
-              },
-            ),
-          )
-          ..loadRequest(Uri.parse(widget.url));
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            log("WebView started loading: $url");
+          },
+          onPageFinished: (String url) {
+            log("WebView finished loading: $url");
+          },
+          onWebResourceError: (error) {
+            log("WebView error: ${error.description}");
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(widget.url));
   }
 
-  /// Requests necessary permissions and starts location tracking
-  Future<void> _requestPermissions() async {
-    var locationStatus = await Permission.locationAlways.request();
-    var cameraStatus = await Permission.camera.request();
+  Future<void> _checkPermissions() async {
+    var locationWhenInUseStatus = await Permission.locationWhenInUse.status;
+    var locationAlwaysStatus = await Permission.locationAlways.status;
+    var cameraStatus = await Permission.camera.status;
 
-    if (locationStatus.isGranted && cameraStatus.isGranted) {
+    if (locationWhenInUseStatus.isDenied) {
+      log("Location (when in use) permission denied. Requesting...");
+      locationWhenInUseStatus = await Permission.locationWhenInUse.request();
+    }
+
+    if (locationWhenInUseStatus.isGranted && locationAlwaysStatus.isDenied) {
+      log("Requesting location always permission...");
+      locationAlwaysStatus = await Permission.locationAlways.request();
+    }
+
+    if (cameraStatus.isDenied) {
+      log("Camera permission denied. Requesting again...");
+      cameraStatus = await Permission.camera.request();
+    }
+
+    if (locationWhenInUseStatus.isPermanentlyDenied ||
+        locationAlwaysStatus.isPermanentlyDenied ||
+        cameraStatus.isPermanentlyDenied) {
+      log("Permission permanently denied. Redirecting to settings...");
+      openAppSettings();
+      return;
+    }
+
+    if (locationAlwaysStatus.isGranted && cameraStatus.isGranted) {
       log("Permissions granted.");
       _startLocationUpdates();
-      _initializeBackgroundService();
-    } else if (locationStatus.isPermanentlyDenied ||
-        cameraStatus.isPermanentlyDenied) {
-      log("Permissions permanently denied. Redirecting to settings...");
-      openAppSettings();
     } else {
-      log("One or more permissions denied.");
+      log("Permissions still denied.");
     }
   }
 
-  /// Handles app lifecycle changes for background execution
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     log("App Lifecycle State: $state");
     if (state == AppLifecycleState.resumed) {
-      _startLocationUpdates();
-    } else if (state == AppLifecycleState.paused) {
-      _initializeBackgroundService();
+      _checkPermissions();
     } else if (state == AppLifecycleState.detached) {
       _stopLocationUpdates();
     }
   }
 
-  /// Initializes and configures background service
-  Future<void> _initializeBackgroundService() async {
-    if (isServiceRunning) return;
-    isServiceRunning = true;
-
-    await service.configure(
-      androidConfiguration: AndroidConfiguration(
-        autoStart: true,
-        isForegroundMode: true,
-        autoStartOnBoot: true,
-        onStart: _onStart,
-      ),
-      iosConfiguration: IosConfiguration(
-        autoStart: true,
-        onForeground: _onStart,
-        onBackground: _onIosBackground,
-      ),
-    );
-  }
-
-  /// Background execution function for iOS
-  @pragma('vm:entry-point')
-  static Future<bool> _onIosBackground(ServiceInstance service) async {
-    WidgetsFlutterBinding.ensureInitialized();
-    DartPluginRegistrant.ensureInitialized();
-    return true;
-  }
-
-  /// Background execution function for Android/iOS
-  @pragma('vm:entry-point')
-  static void _onStart(ServiceInstance service) async {
-    bool isRunning = true;
-
-    service.on("stop").listen((event) {
-      service.stopSelf();
-      isRunning = false;
-      log("Background service stopped.");
-    });
-
-    Timer.periodic(const Duration(minutes: 2), (timer) async {
-      if (!isRunning) {
-        timer.cancel();
-        return;
-      }
-      log("Background location tracking...");
-      await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-    });
-  }
-
-  /// Stops the background service
-  Future<void> _stopBackgroundService() async {
-    service.invoke("stop");
-    isServiceRunning = false;
-    log("Background service stopped.");
-  }
-
-  /// Starts location updates every 2 minutes
   void _startLocationUpdates() {
     _locationTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
       Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
@@ -175,9 +403,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
-  /// Stops location updates
   void _stopLocationUpdates() {
-    _positionStream?.cancel();
     _locationTimer?.cancel();
     log("Stopped Location Updates");
   }
@@ -186,7 +412,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _stopLocationUpdates();
-    _stopBackgroundService();
     super.dispose();
   }
 
