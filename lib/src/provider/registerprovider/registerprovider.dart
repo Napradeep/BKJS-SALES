@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:bkjs_sales/src/utils/const/color.dart';
 import 'package:bkjs_sales/src/utils/dio/dio.dart';
 import 'package:bkjs_sales/src/utils/messenger/messenger.dart';
 import 'package:bkjs_sales/src/utils/router/router.dart';
@@ -27,7 +28,7 @@ class RegistrationProvider extends ChangeNotifier {
     if (staffId != null && staffId > 0) {
       /// User is already registered, go to HomeScreen
       MyRouter.pushRemoveUntil(
-        screen: const HomeScreen(url: 'https://sales.bhangarukalasam.com'),
+        screen: const HomeScreen(url: demoweburl),
       );
     } else {
       /// User is NOT registered, go to RegistrationScreen
@@ -84,7 +85,7 @@ class RegistrationProvider extends ChangeNotifier {
 
         /// Navigate to Home Screen
         MyRouter.pushRemoveUntil(
-          screen: const HomeScreen(url: 'https://sales.bhangarukalasam.com'),
+          screen:  HomeScreen(url: demoweburl),
         );
 
         Messenger.alertSuccess("Registered Successfully");

@@ -12,7 +12,8 @@ class NetworkUtils {
     return _instance;
   }
 
-  final baseurl = "https://sma.bhangarukalasam.com/api/location";
+final baseurl = "https://sma.bhangarukalasam.com/api/location";
+   //final prodbaseurl = "https://sales.bhangarukalasam.com/api/location";
 
   NetworkUtils._internal() {
     _dio = Dio(

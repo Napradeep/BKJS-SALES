@@ -1,6 +1,7 @@
 
 import 'dart:async';
 
+import 'package:bkjs_sales/src/utils/const/color.dart';
 import 'package:bkjs_sales/src/utils/router/router.dart';
 import 'package:bkjs_sales/src/view/homescreen.dart';
 import 'package:bkjs_sales/src/view/registration.dart';
@@ -29,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (staffId != null) {
       MyRouter.pushReplace(
-        screen: const HomeScreen(url: 'https://sales.bhangarukalasam.com'),
+        screen:  HomeScreen(url: demoweburl),
       );
     } else {
       MyRouter.pushReplace(screen: const RegistrationScreen());
